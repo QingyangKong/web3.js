@@ -26,6 +26,7 @@ You need to run a local cryptape cita node to use this library.
 
 
 ## Installation
+npm install github:cryptape/web3.js#develop
 
 ### Node.js
 
