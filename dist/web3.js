@@ -2535,7 +2535,7 @@ var BigNumber = require('bignumber.js');
 function Web3 (provider) {
     this._requestManager = new RequestManager(provider);
     this.currentProvider = provider;
-    this.eth = new Eth(this);
+    this.cita = new Eth(this);
     this.db = new DB(this);
     this.shh = new Shh(this);
     this.net = new Net(this);
@@ -5346,7 +5346,7 @@ var methods = function () {
 
     var getTransaction = new Method({
         name: 'getTransaction',
-        call: 'cita_getTransaction',
+        call: 'cita_getTransactionByHash',
         params: 1,
         outputFormatter: formatters.outputTransactionFormatter
     });
