@@ -2440,6 +2440,10 @@ var isTopic = function (topic) {
     return false;
 };
 
+var isSha3 = function (sha){
+    return isTopic(sha);
+};
+
 module.exports = {
     padLeft: padLeft,
     padRight: padRight,
@@ -2471,6 +2475,7 @@ module.exports = {
     isJson: isJson,
     isBloom: isBloom,
     isTopic: isTopic,
+    isSha3:isSha3,
 };
 
 },{"./sha3.js":19,"bignumber.js":"bignumber.js","utf8":85}],21:[function(require,module,exports){
@@ -3711,6 +3716,13 @@ var inputBlockNumberFormatter = function (blockNumber) {
         return undefined;
     } else if (isPredefinedBlockNumber(blockNumber)) {
         return blockNumber;
+    }else if (typeof blockNumber === "number"){
+        return blockNumber;
+    }else if (utils.isSha3(blockNumber)){
+        if (blockNumber.substring(0, 2) === '0x') {
+            blockNumber = blockNumber.substring(2,66);
+        }
+        return blockNumber;
     }
     return utils.toHex(blockNumber);
 };
@@ -4932,21 +4944,21 @@ module.exports = Jsonrpc;
 
 },{}],36:[function(require,module,exports){
 /*
-    This file is part of web3.js.
+ This file is part of web3.js.
 
-    web3.js is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ web3.js is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+ web3.js is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ You should have received a copy of the GNU Lesser General Public License
+ along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+ */
 /**
  * @file method.js
  * @author Marek Kotewicz <marek@ethdev.com>
@@ -4995,7 +5007,7 @@ Method.prototype.extractCallback = function (args) {
 
 /**
  * Should be called to check if the number of arguments is correct
- * 
+ *
  * @method validateArgs
  * @param {Array} arguments
  * @throws {Error} if it is not
@@ -5008,12 +5020,19 @@ Method.prototype.validateArgs = function (args) {
 
 /**
  * Should be called to format input args of method
- * 
+ *
  * @method formatInput
  * @param {Array}
  * @return {Array}
  */
 Method.prototype.formatInput = function (args) {
+    //TODO
+    if (utils.isSha3(args[0])) {
+        if (args[0].substring(0, 2) === '0x') {
+            args[0] = args[0].substring(2, 66);
+        }
+        return args;
+    }
     if (!this.inputFormatter) {
         return args;
     }
@@ -5062,11 +5081,11 @@ Method.prototype.attachToObject = function (obj) {
         obj[name[0]] = obj[name[0]] || {};
         obj[name[0]][name[1]] = func;
     } else {
-        obj[name[0]] = func; 
+        obj[name[0]] = func;
     }
 };
 
-Method.prototype.buildCall = function() {
+Method.prototype.buildCall = function () {
     var method = this;
     var send = function () {
         var payload = method.toPayload(Array.prototype.slice.call(arguments));
@@ -5204,7 +5223,7 @@ var Iban = require('../iban');
 var transfer = require('../transfer');
 
 var blockCall = function (args) {
-    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "eth_getBlockByHash" : "eth_getBlockByNumber";
+    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "cita_getBlockByHash" : "cita_getBlockByHeight";
 };
 
 var transactionFromBlockCall = function (args) {
@@ -5281,7 +5300,7 @@ var methods = function () {
 
     var getCode = new Method({
         name: 'getCode',
-        call: 'eth_getCode',
+        call: 'cita_getCode',
         params: 2,
         inputFormatter: [formatters.inputAddressFormatter, formatters.inputDefaultBlockNumberFormatter]
     });
@@ -5327,7 +5346,7 @@ var methods = function () {
 
     var getTransaction = new Method({
         name: 'getTransaction',
-        call: 'eth_getTransactionByHash',
+        call: 'cita_getTransaction',
         params: 1,
         outputFormatter: formatters.outputTransactionFormatter
     });
@@ -5342,14 +5361,14 @@ var methods = function () {
 
     var getTransactionReceipt = new Method({
         name: 'getTransactionReceipt',
-        call: 'eth_getTransactionReceipt',
+        call: 'cita_getTransactionReceipt',
         params: 1,
         outputFormatter: formatters.outputTransactionReceiptFormatter
     });
 
     var getTransactionCount = new Method({
         name: 'getTransactionCount',
-        call: 'eth_getTransactionCount',
+        call: 'cita_getTransactionCount',
         params: 2,
         inputFormatter: [null, formatters.inputDefaultBlockNumberFormatter],
         outputFormatter: utils.toDecimal
@@ -5364,7 +5383,7 @@ var methods = function () {
 
     var sendTransaction = new Method({
         name: 'sendTransaction',
-        call: 'eth_sendTransaction',
+        call: 'cita_sendTransaction',
         params: 1,
         inputFormatter: [formatters.inputTransactionFormatter]
     });
@@ -5385,7 +5404,7 @@ var methods = function () {
 
     var call = new Method({
         name: 'call',
-        call: 'eth_call',
+        call: 'cita_call',
         params: 2,
         inputFormatter: [formatters.inputCallFormatter, formatters.inputDefaultBlockNumberFormatter]
     });
@@ -5487,7 +5506,7 @@ var properties = function () {
         }),
         new Property({
             name: 'blockNumber',
-            getter: 'eth_blockNumber',
+            getter: 'cita_blockHeight',
             outputFormatter: utils.toDecimal
         }),
         new Property({
