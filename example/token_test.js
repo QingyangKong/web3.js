@@ -1,7 +1,6 @@
 const fs = require('fs');
 const solc = require('solc');
 const Web3 = require('../lib/web3');
-const request = require('request');
 
 const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:1337"));
 
@@ -13,7 +12,7 @@ const abi = JSON.parse(contractData.interface);
 const contract = web3.eth.contract(abi);
 
 
-var blockNumber = 0;
+var validUntilBlock = 0;
 const privkey = '352416e1c910e413768c51390dfd791b414212b7b4fe6b1a18f58007fa894214';
 const quota = 999999;
 const from = '0x0dbd369a741319fa5107733e2c9db9929093e3c7';
@@ -27,7 +26,7 @@ startDeploy();
 async function startDeploy() {
     web3.eth.getBlockNumber(function(err, res){
         if (!err) {
-            blockNumber = res;
+            validUntilBlock = res + 88;
             deployContract();
         }
     });
@@ -39,9 +38,8 @@ function deployContract() {
         privkey: privkey,
         nonce: getRandomInt(),
         quota: quota,
-        bytecode: bytecode,
-        blockNumber: blockNumber,
-        from: from
+        data: bytecode,
+        validUntilBlock: validUntilBlock
     }, (err, contract) => {
         if(err) {
             console.error("--------------------------------------------------------------------------------")
@@ -49,7 +47,6 @@ function deployContract() {
             return;
             // callback fires twice, we only want the second call when the contract is deployed
         } else if(contract.address){
-            console.error("================================================================================")
             myContract = contract;
             console.log('address: ' + myContract.address);
             callMethodContract();
@@ -65,18 +62,32 @@ async function callMethodContract(address) {
     const balance = myContract.getBalance.call(from);
     console.log("get balance: " + balance); 
 
-    myContract.transfer(to, 100, {
+    var result = myContract.transfer(to, 100, {
         privkey: privkey,
         nonce: getRandomInt(),
         quota: quota,
-        blockNumber: blockNumber,
+        validUntilBlock: validUntilBlock,
         from: from
     });
-    
-    setTimeout(function() {
-        const balance2 = myContract.getBalance.call(to);
-        console.log("transfer balance: " + balance2); 
-    }, 6000);
+
+    // wait for receipt
+    var count = 0;
+    var filter = web3.eth.filter('latest', function(err){
+        if (!err) {
+            count++;
+            if (count > 20) {
+                filter.stopWatching(function() {});
+            } else {
+                web3.eth.getTransactionReceipt(result.hash, function(e, receipt){
+                    if(receipt) {
+                        filter.stopWatching(function() {});
+                        const balance2 = myContract.getBalance.call(to);
+                        console.log("transfer balance: " + balance2); 
+                    }
+                });
+            }
+        }
+    });
 }
 
 function getRandomInt() {

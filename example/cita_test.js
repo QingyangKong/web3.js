@@ -17,7 +17,7 @@ const quota = 999999;
 const from = '0dbd369a741319fa5107733e2c9db9929093e3c7';
 
 /*************************************初始化完成***************************************/ 
-
+citaTest();
 startDeploy();
 
 // get current block number
@@ -41,8 +41,7 @@ async function deployContract() {
         from: from
     }, (err, contract) => {
         if(err) {
-            console.error("--------------------------------------------------------------------------------")
-            console.error(err);
+            throw new error("contract deploy error: " + err);
             return;
             // callback fires twice, we only want the second call when the contract is deployed
         } else if(contract.address){
@@ -85,10 +84,66 @@ function callMethodContract() {
             }
         }
     });
-
 }
 
 
 function getRandomInt() {
     return Math.floor(Math.random() * 100).toString(); 
+}
+
+
+async function citaTest() {
+
+    // * net_peerCount
+    // * cita_blockNumber
+    // * cita_sendTransaction
+    // * cita_getBlockByHash
+    // * cita_getBlockByNumber
+    // * cita_getTransaction
+    // * eth_getTransactionCount
+    // * eth_getCode
+    // * eth_getTransactionReceipt
+    // * eth_call
+
+    console.log("--------begin test base case of cita -------");
+
+    //1. get cita block height
+    web3.eth.getBlockNumber(function (err, result) {
+        if (err) {
+            console.log("get current block height error: " + err);
+        } else {
+            console.log("current block height:" + result);
+        }
+    });
+
+
+    //2. get cita peer node count
+    web3.net.getPeerCount(function (err, result) {
+        if (err) {
+            throw new error("get cita peer node count error: " + err);
+        } else {
+            console.log("cita peer node count:" + result);
+        }
+    });
+
+
+    //3. cita_getBlockByHeight
+    web3.eth.getBlock(0, function (err, result) {
+        if (err) {
+            throw new error("get block by height error: " + err);
+        } else {
+            block = result.hash;
+            console.log("get hash by height: " + block);
+        }
+    });
+
+
+    //4 cita_getBlockByHash
+    web3.eth.getBlock(block, function (err, result) {
+        if(err) {
+            throw new error("get block by hash error: " + err);
+        } else {
+            console.log("get block by hash : " + JSON.stringify(result));
+        }
+    });
 }

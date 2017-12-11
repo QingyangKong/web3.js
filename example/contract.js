@@ -69,7 +69,7 @@ startDeploy();
 async function startDeploy() {
     web3.eth.getBlockNumber(function(err, res){
         if (!err) {
-            blockNumber = res;
+            validUntilBlock = res + 88;
             deployContract();
         }
     });
@@ -83,9 +83,9 @@ function deployContract() {
         privkey: '352416e1c910e413768c51390dfd791b414212b7b4fe6b1a18f58007fa894214',
         nonce: getRandomInt(),
         quota: 999999,
-        bytecode: code,
-        blockNumber: blockNumber,
-        from: '0dbd369a741319fa5107733e2c9db9929093e3c7'
+        data: code,
+        validUntilBlock: validUntilBlock,
+        from: from
         }, function (err, contract) {
             if(err) {
                 console.error("--------------------------------------------------------------------------------")
