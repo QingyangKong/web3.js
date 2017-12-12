@@ -9,7 +9,7 @@ const output = solc.compile(input.toString(), 1);
 const contractData = output.contracts[':Token'];   // 规则：冒号+contract名称，并非文件名
 const bytecode = contractData.bytecode;   
 const abi = JSON.parse(contractData.interface);
-const contract = web3.eth.contract(abi);
+const Contract = web3.eth.contract(abi);
 
 
 var validUntilBlock = 0;
@@ -34,7 +34,7 @@ async function startDeploy() {
 
 // 部署合约
 function deployContract() {
-    contract.new({
+    Contract.new({
         privkey: privkey,
         nonce: getRandomInt(),
         quota: quota,
@@ -49,7 +49,19 @@ function deployContract() {
         } else if(contract.address){
             myContract = contract;
             console.log('address: ' + myContract.address);
+
+            // console.log("watch Transfer event and call transfer");
+            // let transferEvent = myContract.Transfer([],
+                                                //    function(err, result) {
+                                                //        console.log("Transafer event:");
+                                                //        console.log("%o", result);
+                                                //    });
             callMethodContract();
+            // setTimeout(function(){
+            //     transferEvent.stopWatching();
+            // }, 30000);
+
+            
         }
     });
 }
@@ -59,6 +71,7 @@ function deployContract() {
  * 智能合约单元测试
  */
 async function callMethodContract(address) {
+
     const balance = myContract.getBalance.call(from);
     console.log("get balance: " + balance); 
 
@@ -69,6 +82,8 @@ async function callMethodContract(address) {
         validUntilBlock: validUntilBlock,
         from: from
     });
+
+    console.log("transfer receipt: " + JSON.stringify(result))
 
     // wait for receipt
     var count = 0;
