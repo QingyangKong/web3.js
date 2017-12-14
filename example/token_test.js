@@ -49,19 +49,7 @@ function deployContract() {
         } else if(contract.address){
             myContract = contract;
             console.log('address: ' + myContract.address);
-
-            // console.log("watch Transfer event and call transfer");
-            // let transferEvent = myContract.Transfer([],
-                                                //    function(err, result) {
-                                                //        console.log("Transafer event:");
-                                                //        console.log("%o", result);
-                                                //    });
             callMethodContract();
-            // setTimeout(function(){
-            //     transferEvent.stopWatching();
-            // }, 30000);
-
-            
         }
     });
 }

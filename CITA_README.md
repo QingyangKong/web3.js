@@ -1,15 +1,18 @@
-## 支持CITA的Web3.js使用说明
+# Web3.js
 
 `Web3.js`原是支持[以太坊RPC接口](https://github.com/ethereum/wiki/wiki/JavaScript-API)的`JavaScript`库，方便第三方开发者使用`JavaScript`完成与以太坊的交互，由于`CITA`与以太坊保持高度兼容性，因此我们将`Web3.js`稍加改造，同时支持以太坊和CITA，使用习惯也和以太坊保持高度一致。
 
-### 工程目录介绍
+目前改造后的`web3.js`提供了在`node.js`环境下可以正常运行和测试的示例，其中包括获取`CITA`基本信息、发送交易、获取块信息、部署智能合约以及测试合约方法等功能，涵盖了区块链应用的绝大部分使用场景。
 
-改造后的`web3.js`基本上沿用了原来的目录结构，在`example`目录下增加了两个合约文件：`SimpleStorage.sol`和`Token.sol`，以及三个测试文件`storage_test.js`、`token_test.js`和`cita_test.js`，直接执行`node storage_test.js`，即可完成合约从编译、部署、执行的全过程。下面以`Token.sol`和`token_test.js`为例，介绍详细的使用过程。
+### 准备工作和工程目录介绍
 
-
-### 启动CITA
+`web3.js`需要本地有`node`环境，建议安装最新版本，正式开始前还需要通过`npm install`下载工程需要依赖的所有第三方库。
 
 在使用`Web3`之前，必须要先启动`CITA`，具体启动方法可以参见[CITA安装和启动说明](http://cita.readthedocs.io/zh_CN/latest/getting_started.html#)
+
+改造后的`web3.js`基本上沿用了原来的目录结构，在`example`目录下增加了两个合约文件：`SimpleStorage.sol`和`Token.sol`，以及三个测试文件`storage_test.js`、`token_test.js`和`cita_test.js`，直接执行`node storage_test.js`，即可完成合约从编译、部署、执行的全过程。
+
+下面以`Token.sol`和`token_test.js`为例，介绍详细的使用过程。
 
 ### 初始化web3
 
@@ -116,15 +119,15 @@ contract Token {
 
 ### 部署智能合约
 
-部署智能合约本质上就是往`CITA`网络中发送交易，请求参数中需要包含智能合约编译后的字节码，目前`CITA`只支持签名加密并序列化后的交易请求方式，对应于以太坊中的`sendRawTransaction`，所以需要在`web3.js`中完成交易请求参数的签名加密和序列化，这部分代码在`web3.js`库的`formatters.js`文件中。这部分代码展示了`CITA`交易参数组装的全过程，其中序列化采用了`Google protobuf`。
+部署智能合约本质上就是往`CITA`网络中发送交易，请求参数中需要包含智能合约编译后的字节码，目前`CITA`只支持签名加密并序列化后的交易请求方式，对应于以太坊中的`sendRawTransaction`，所以需要在`web3.js`中完成交易请求参数的签名加密和序列化，这部分代码在`web3.js`库的`formatters.js`文件中。
 
 对于`CITA`来说，需要一些特定的参数，其中就用到了当前块高度，因此在部署合约之前，必须先调用方法获取当前块高度，下面详细介绍一下发送交易需要用到的参数。
 
 * `privkey`: `CITA`私钥
-* `nonce`: 随机数
-* `quota`: `gas`资源,
+* `nonce`: 可以随机生成，或者根据具体业务生成
+* `quota`: 类似于`ethereum`中的`gas`资源,
 * `data`: 合约编译后的字节码，如果是普通交易，则不需要填写该参数
-* `validUntilBlock`: 有效块高度
+* `validUntilBlock`: 超时机制，假定当前链高度为h, 则`validUntilBlock`取值应该为(h, h+100]之间的任意数值
 
 具体的部署合约代码如下：
 
@@ -148,7 +151,12 @@ function deployContract() {
     });
 }
 ```
-部署合约的过程的大致如下：先将合约编译后的字节码作为请求参数之一，向CITA发送交易请求，然后
+部署合约的过程的大致如下：先将合约编译后的字节码添加到交易请求参数列表中，向`CITA`发送部署合约的交易请求，并获取请求返回的`hash`值。然后`web3.js`会通过`eth_newBlockFilter`请求创建监听最新区块状态改变的`filter`，根据获取到的`filter_id`在一定的次数范围内，以固定时间间隔发送`eth_getFilterChanges`请求，直到出新块，此时说明合约已经部署到链上。至于是否部署成功，可以通过`getTransactionReceipt`请求判断，如果合约部署成功，那么返回值中会包含`contractAddress`，如果合约部署有问题，那么错误信息会体现在`errMessage`字段中。
+
+以下是执行过程中的日志记录，我们可以从日志中更加直观地看到部署合约的整个流程。
+
+```
+```
 
 ### 调用合约方法
 
@@ -170,15 +178,15 @@ var result = myContract.transfer(to, 100, {				// 向特定地址转账100个代
 
 console.log("transfer receipt: " + JSON.stringify(result))
 
-// wait for receipt
+// wait for receipt, 
 var count = 0;
-var filter = web3.eth.filter('latest', function(err){		// 调用flter方法，持续监听转账方法是否已生效
+var filter = web3.eth.filter('latest', function(err){		// 调用flter方法，持续监听当前最新块的出块状态
     if (!err) {
         count++;
-        if (count > 20) {									// 调用次数上限不超过20，超过20后停止监听
+        if (count > 20) {									// 如果连续20次监听请求，都没有出新块，则停止监听
             filter.stopWatching(function() {});
         } else {
-        	// filter方法获取到有效结果后，发起getTransactionReceipt请求，如果调用成功，则可以调用查询余额方法验证转账结果
+        	// 当filter监听到有新区块产生后，发起getTransactionReceipt请求，如果返回结果成功，那就可以通过调用查询余额方法验证转账结果了
             web3.eth.getTransactionReceipt(result.hash, function(e, receipt){
                 if(receipt) {
                     filter.stopWatching(function() {});

@@ -84,8 +84,7 @@ function deployContract() {
         nonce: getRandomInt(),
         quota: 999999,
         data: code,
-        validUntilBlock: validUntilBlock,
-        from: from
+        validUntilBlock: validUntilBlock
         }, function (err, contract) {
             if(err) {
                 console.error("--------------------------------------------------------------------------------")
