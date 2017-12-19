@@ -49,6 +49,19 @@ function deployContract() {
         } else if(contract.address){
             myContract = contract;
             console.log('address: ' + myContract.address);
+
+            // // 获取事件对象
+            // var myEvent = myContract.Transfer();
+            // // 监听事件，监听到事件后会执行回调函数
+            // myEvent.watch(function(err, result) {
+            //     if (!err) {
+            //         console.log("watch event result: " + result);
+            //     } else {
+            //         console.log("watch event result: " + err);
+            //     }
+            //     myEvent.stopWatching();
+            // });
+
             callMethodContract();
         }
     });
@@ -63,7 +76,7 @@ async function callMethodContract(address) {
     const balance = myContract.getBalance.call(from);
     console.log("get balance: " + balance); 
 
-    var result = myContract.transfer(to, 100, {
+    var result = myContract.transfer(to, '100', {
         privkey: privkey,
         nonce: getRandomInt(),
         quota: quota,

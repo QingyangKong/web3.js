@@ -128,22 +128,24 @@ async function citaTest() {
 
 
     //3. cita_getBlockByHeight
-    web3.eth.getBlock(0, function (err, result) {
+    web3.eth.getBlockByNumber(0, false, function (err, result) {
         if (err) {
             throw new error("get block by height error: " + err);
         } else {
-            block = result.hash;
-            console.log("get hash by height: " + block);
+            console.log("get hash by height: " + result.hash);
+
+            //4 cita_getBlockByHash
+            web3.eth.getBlockByHash(result.hash, function (err, result) {
+                if(err) {
+                    throw new error("get block by hash error: " + err);
+                } else {
+                    console.log("get block by hash : " + JSON.stringify(result));
+                }
+            });
+
         }
     });
 
 
-    //4 cita_getBlockByHash
-    web3.eth.getBlock(block, function (err, result) {
-        if(err) {
-            throw new error("get block by hash error: " + err);
-        } else {
-            console.log("get block by hash : " + JSON.stringify(result));
-        }
-    });
+    
 }

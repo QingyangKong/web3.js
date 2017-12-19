@@ -12,6 +12,7 @@
     "crypto-js": "^3.1.4",
     "secp256k1": "3.4.0",
     "google-protobuf": "^3.5.0",
+    "solc": "0.4.19",
     "utf8": "^2.1.1",
     "xhr2": "*",
     "xmlhttprequest": "*"
