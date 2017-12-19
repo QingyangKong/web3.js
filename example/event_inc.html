@@ -4,26 +4,41 @@
     <script type="text/javascript" src="../dist/web3.js"></script>
     <script type="text/javascript">
 
-        var Web3 = require('web3');
-        var web3 = new Web3();
-        web3.setProvider(new web3.providers.HttpProvider('http://localhost:8545'));
+        // var Web3 = require('web3');
+        // var web3 = new Web3();
+        // web3.setProvider(new web3.providers.HttpProvider('http://localhost:8545'));
 
-        var source = "" +
-        "contract Contract { " +
-        "   event Incremented(bool indexed odd, uint x); " +
-        "   function Contract() { " +
-        "        x = 70; " +
-        "    } " +
-        "    function inc() { " +
-        "        ++x; " +
-        "        Incremented(x % 2 == 1, x); " +
-        "    } " +
-        "    uint x; " +
-        "}";
+        // var source = "" +
+        // "pragma solidity ^0.4.6;" +
+        // "contract Contract { " +
+        // "   event Incremented(bool indexed odd, uint x); " +
+        // "   function Contract() { " +
+        // "        x = 70; " +
+        // "    } " +
+        // "    function inc() { " +
+        // "        ++x; " +
+        // "        Incremented(x % 2 == 1, x); " +
+        // "    } " +
+        // "    uint x; " +
+        // "}";
 
-        var compiled = web3.eth.compile.solidity(source);
-        var code = compiled.Contract.code;
-        var abi = compiled.Contract.info.abiDefinition;
+
+        const fs = require('fs');
+        const solc = require('solc');
+        const Web3 = require('../lib/web3');
+
+        const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:1337"));
+
+        const input = fs.readFileSync('Multiple.sol');
+        const output = solc.compile(input.toString(), 1);
+        const contractData = output.contracts[':Multiple'];   // 规则：冒号+contract名称，并非文件名
+        const bytecode = contractData.bytecode;   
+        const abi = JSON.parse(contractData.interface);
+
+
+        // var compiled = web3.eth.compile.solidity(source);
+        // var code = compiled.code;
+        // var abi = compiled.info.abiDefinition;
 
         var address;
         var contract;
@@ -35,12 +50,12 @@
     
         var createContract = function () {
             // let's assume that we have a private key to coinbase ;)
-            web3.eth.defaultAccount = web3.eth.coinbase;
+            // web3.eth.defaultAccount = web3.eth.coinbase;
             
             document.getElementById('create').style.visibility = 'hidden';
             document.getElementById('status').innerText = "transaction sent, waiting for confirmation";
 
-            web3.eth.contract(abi).new({data: code}, function (err, c) {
+            web3.eth.contract(abi).new({data: bytecode}, function (err, c) {
                 if (err) {
                     console.error(err);
                     return;

@@ -1,38 +1,62 @@
-# cita JavaScript RPC API 
+# Migration 0.13.0 -> 0.14.0
 
-Now, crypatpe cita implement RPC:
-```
-cita_getLogs
-net_peerCount
-cita_blockHeight
-cita_sendTransaction
-cita_getBlockByHash
-cita_getBlockByHeight
-cita_getTransaction
-cita_getTransactionReceipt
-cita_call
-cita_getTransactionCount
-cita_getCode
+web3.js version 0.14.0 supports [multiple instances of web3](https://github.com/ethereum/web3.js/issues/297) object.
+To migrate to this version, please follow the guide:
+
+```diff
+-var web3 = require('web3');
++var Web3 = require('web3');
++var web3 = new Web3();
 ```
 
-eg:
-```
-var Web3 = require('web3');
-var web3 = new Web3();
 
-```
+# Ethereum JavaScript API
 
-You need to run a local cryptape cita node to use this library.
+[![Join the chat at https://gitter.im/ethereum/web3.js](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ethereum/web3.js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+This is the Ethereum compatible [JavaScript API](https://github.com/ethereum/wiki/wiki/JavaScript-API)
+which implements the [Generic JSON RPC](https://github.com/ethereum/wiki/wiki/JSON-RPC) spec. It's available on npm as a node module, for bower and component as an embeddable js and as a meteor.js package.
+
+[![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![dependency status][dep-image]][dep-url] [![dev dependency status][dep-dev-image]][dep-dev-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Stories in Ready][waffle-image]][waffle-url]
+
+<!-- [![browser support](https://ci.testling.com/ethereum/ethereum.js.png)](https://ci.testling.com/ethereum/ethereum.js) -->
+
+You need to run a local Ethereum node to use this library.
+
+[Documentation](https://github.com/ethereum/wiki/wiki/JavaScript-API)
 
 ## Installation
-````
-npm install github:cryptape/web3.js#develop
-````
 
 ### Node.js
 
+```bash
+npm install web3
+```
 
+### Yarn
+
+```bash
+yarn add web3
+```
+
+### Meteor.js
+
+```bash
+meteor add ethereum:web3
+```
+
+### As Browser module
+Bower
+
+```bash
+bower install web3
+```
+
+Component
+
+```bash
+component install ethereum/web3.js
+```
 
 * Include `web3.min.js` in your html file. (not required for the meteor package)
 
@@ -40,109 +64,34 @@ npm install github:cryptape/web3.js#develop
 Use the `web3` object directly from global namespace:
 
 ```js
-console.log(web3); // it's here!
+console.log(web3); // {eth: .., shh: ...} // it's here!
 ```
 
 Set a provider (HttpProvider)
 
 ```js
-web3.setProvider(new web3.providers.HttpProvider('http://localhost:1337'));
+if (typeof web3 !== 'undefined') {
+  web3 = new Web3(web3.currentProvider);
+} else {
+  // set the provider you want from Web3.providers
+  web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+}
+```
+
+Set a provider (HttpProvider using [HTTP Basic Authentication](https://en.wikipedia.org/wiki/Basic_access_authentication))
+
+```js
+web3.setProvider(new web3.providers.HttpProvider('http://host.url', 0, BasicAuthUsername, BasicAuthPassword));
 ```
 
 There you go, now you can use it:
-#### 1. get cita block height
 
 ```js
-web3.cita.getBlockNumber(function (err, result) {
-    if (err) {
-        //error info
-        console.log("error = " + err);
-    } else {
-        // cita return data
-        console.log("data = " + result);
-    }
-});
-
+var coinbase = web3.eth.coinbase;
+var balance = web3.eth.getBalance(coinbase);
 ```
 
-#### 2. get cita peer node count
-```js
-web3.net.getPeerCount(function (err, result) {
-    if (err) {
-        //error info
-        console.log("error = " + err);
-    } else {
-        // cita return data
-        console.log("data = " + result);
-    }
-
-});
-```
-
-
-#### 3. cita_getBlockByHeight
-```js
-web3.cita.getBlock(9, function (err, result) {
-    if (err) {
-        //error info
-        console.log("error = " + err);
-    } else {
-        // cita return data and pretty print output
-        console.log(JSON.stringify(result, null, 2));
-    }
-});
-
-```
-
-#### 4. cita_getBlockByHash
-```js
-var height_hash = "0x116b5f9449c01dd39afed9f26af26f79181b31194200094f61ecee6a1e422a32";//value from setp 3
-web3.cita.getBlock(height_hash, function (err, result) {
-    if(err) {
-        //error info
-        console.log("error = " + err);
-    } else {
-        // cita return data and pretty print output
-        console.log(JSON.stringify(result, null, 2));
-    }
-});
-
-```
-
-#### 5. cita_getTransaction
-```js
-web3.cita.getTransaction(height_hash, function (err, result) {
-    if (err) {
-        //error info
-        console.log("error = " + err);
-    } else {
-        // cita return data and pretty print output
-        console.log(JSON.stringify(result, null, 2));
-    }
-});
-
-```
-
-#### 6.cita_getTransactionReceipt
-```js
-web3.cita.getTransactionReceipt(height_hash, function (err, result) {
-    if (err) {
-        //error info
-        console.log("error = " + err);
-    } else {
-        // cita return data and pretty print output
-        console.log(JSON.stringify(result, null, 2));
-    }
-});
-
-```
-
-#### 7. 
-```js
-
-
-```
-
+You can find more examples in [`example`](https://github.com/ethereum/web3.js/tree/master/example) directory.
 
 
 ## Contribute!
@@ -166,3 +115,32 @@ npm run-script build
 ```
 
 
+### Testing (mocha)
+
+```bash
+npm test
+```
+
+### Community
+ - [Gitter](https://gitter.im/ethereum/web3.js?source=orgpage)
+ - [Forum](https://forum.ethereum.org/categories/ethereum-js)
+
+
+### Other implementations
+ - Python [Web3.py](https://github.com/pipermerriam/web3.py)
+ - Haskell [hs-web3](https://github.com/airalab/hs-web3)
+ - Java [web3j](https://github.com/web3j/web3j)
+
+
+[npm-image]: https://badge.fury.io/js/web3.png
+[npm-url]: https://npmjs.org/package/web3
+[travis-image]: https://travis-ci.org/ethereum/web3.js.svg
+[travis-url]: https://travis-ci.org/ethereum/web3.js
+[dep-image]: https://david-dm.org/ethereum/web3.js.svg
+[dep-url]: https://david-dm.org/ethereum/web3.js
+[dep-dev-image]: https://david-dm.org/ethereum/web3.js/dev-status.svg
+[dep-dev-url]: https://david-dm.org/ethereum/web3.js#info=devDependencies
+[coveralls-image]: https://coveralls.io/repos/ethereum/web3.js/badge.svg?branch=master
+[coveralls-url]: https://coveralls.io/r/ethereum/web3.js?branch=master
+[waffle-image]: https://badge.waffle.io/ethereum/web3.js.svg?label=ready&title=Ready
+[waffle-url]: https://waffle.io/ethereum/web3.js

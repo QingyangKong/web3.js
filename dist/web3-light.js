@@ -735,68 +735,52 @@ SolidityCoder.prototype.encodeMultiWithOffset = function (types, solidityTypes, 
     return result;
 };
 
-// TODO: refactor whole encoding!
 SolidityCoder.prototype.encodeWithOffset = function (type, solidityType, encoded, offset) {
+    /* jshint maxcomplexity: 17 */
+    /* jshint maxdepth: 5 */
+
     var self = this;
-    if (solidityType.isDynamicArray(type)) {
-        return (function () {
-            // offset was already set
-            var nestedName = solidityType.nestedName(type);
-            var nestedStaticPartLength = solidityType.staticPartLength(nestedName);
-            var result = encoded[0];
+    var encodingMode={dynamic:1,static:2,other:3};
 
-            (function () {
-                var previousLength = 2; // in int
-                if (solidityType.isDynamicArray(nestedName)) {
-                    for (var i = 1; i < encoded.length; i++) {
-                        previousLength += +(encoded[i - 1])[0] || 0;
-                        result += f.formatInputInt(offset + i * nestedStaticPartLength + previousLength * 32).encode();
-                    }
+    var mode=(solidityType.isDynamicArray(type)?encodingMode.dynamic:(solidityType.isStaticArray(type)?encodingMode.static:encodingMode.other));
+
+    if(mode !== encodingMode.other){
+        var nestedName = solidityType.nestedName(type);
+        var nestedStaticPartLength = solidityType.staticPartLength(nestedName);
+        var result = (mode === encodingMode.dynamic ? encoded[0] : '');
+
+        if (solidityType.isDynamicArray(nestedName)) {
+            var previousLength = (mode === encodingMode.dynamic ? 2 : 0);
+
+            for (var i = 0; i < encoded.length; i++) {
+                // calculate length of previous item
+                if(mode === encodingMode.dynamic){
+                    previousLength += +(encoded[i - 1])[0] || 0;
                 }
-            })();
-
-            // first element is length, skip it
-            (function () {
-                for (var i = 0; i < encoded.length - 1; i++) {
-                    var additionalOffset = result / 2;
-                    result += self.encodeWithOffset(nestedName, solidityType, encoded[i + 1], offset +  additionalOffset);
+                else if(mode === encodingMode.static){
+                    previousLength += +(encoded[i - 1] || [])[0] || 0;
                 }
-            })();
-
-            return result;
-        })();
-
-    } else if (solidityType.isStaticArray(type)) {
-        return (function () {
-            var nestedName = solidityType.nestedName(type);
-            var nestedStaticPartLength = solidityType.staticPartLength(nestedName);
-            var result = "";
-
-
-            if (solidityType.isDynamicArray(nestedName)) {
-                (function () {
-                    var previousLength = 0; // in int
-                    for (var i = 0; i < encoded.length; i++) {
-                        // calculate length of previous item
-                        previousLength += +(encoded[i - 1] || [])[0] || 0;
-                        result += f.formatInputInt(offset + i * nestedStaticPartLength + previousLength * 32).encode();
-                    }
-                })();
+                result += f.formatInputInt(offset + i * nestedStaticPartLength + previousLength * 32).encode();
             }
+        }
 
-            (function () {
-                for (var i = 0; i < encoded.length; i++) {
-                    var additionalOffset = result / 2;
-                    result += self.encodeWithOffset(nestedName, solidityType, encoded[i], offset + additionalOffset);
-                }
-            })();
+        var len= (mode === encodingMode.dynamic ? encoded.length-1 : encoded.length);
+        for (var c = 0; c < len; c++) {
+            var additionalOffset = result / 2;
+            if(mode === encodingMode.dynamic){
+                result += self.encodeWithOffset(nestedName, solidityType, encoded[c + 1], offset +  additionalOffset);
+            }
+            else if(mode === encodingMode.static){
+                result += self.encodeWithOffset(nestedName, solidityType, encoded[c], offset + additionalOffset);
+            }
+        }
 
-            return result;
-        })();
+        return result;
     }
 
     return encoded;
 };
+
 
 /**
  * Should be used to decode bytes to plain param
@@ -2368,7 +2352,7 @@ var isFunction = function (object) {
  * @return {Boolean}
  */
 var isObject = function (object) {
-    return object !== null && !(object instanceof Array) && typeof object === 'object';
+    return object !== null && !(Array.isArray(object)) && typeof object === 'object';
 };
 
 /**
@@ -2390,7 +2374,7 @@ var isBoolean = function (object) {
  * @return {Boolean}
  */
 var isArray = function (object) {
-    return object instanceof Array;
+    return Array.isArray(object);
 };
 
 /**
@@ -2440,10 +2424,6 @@ var isTopic = function (topic) {
     return false;
 };
 
-var isSha3 = function (sha){
-    return isTopic(sha);
-};
-
 module.exports = {
     padLeft: padLeft,
     padRight: padRight,
@@ -2475,12 +2455,11 @@ module.exports = {
     isJson: isJson,
     isBloom: isBloom,
     isTopic: isTopic,
-    isSha3:isSha3,
 };
 
 },{"./sha3.js":19,"bignumber.js":"bignumber.js","utf8":85}],21:[function(require,module,exports){
 module.exports={
-    "version": "0.20.0"
+    "version": "0.20.2"
 }
 
 },{}],22:[function(require,module,exports){
@@ -2535,7 +2514,7 @@ var BigNumber = require('bignumber.js');
 function Web3 (provider) {
     this._requestManager = new RequestManager(provider);
     this.currentProvider = provider;
-    this.cita = new Eth(this);
+    this.eth = new Eth(this);
     this.db = new DB(this);
     this.shh = new Shh(this);
     this.net = new Net(this);
@@ -3660,8 +3639,6 @@ module.exports = Filter;
 
 
 },{"../utils/utils":20,"./formatters":30}],30:[function(require,module,exports){
-'use strict'
-
 /*
     This file is part of web3.js.
 
@@ -3684,6 +3661,9 @@ module.exports = Filter;
  * @author Fabian Vogelsteller <fabian@ethdev.com>
  * @date 2015
  */
+
+'use strict';
+
 
 var utils = require('../utils/utils');
 var config = require('../utils/config');
@@ -3715,13 +3695,6 @@ var inputBlockNumberFormatter = function (blockNumber) {
     if (blockNumber === undefined) {
         return undefined;
     } else if (isPredefinedBlockNumber(blockNumber)) {
-        return blockNumber;
-    }else if (typeof blockNumber === "number"){
-        return blockNumber;
-    }else if (utils.isSha3(blockNumber)){
-        if (blockNumber.substring(0, 2) === '0x') {
-            blockNumber = blockNumber.substring(2,66);
-        }
         return blockNumber;
     }
     return utils.toHex(blockNumber);
@@ -4286,19 +4259,19 @@ module.exports = SolidityFunction;
  * @date 2015
  */
 
-var errors = require('./errors')
+var errors = require('./errors');
 
 // workaround to use httpprovider in different envs
 
 // browser
 if (typeof window !== 'undefined' && window.XMLHttpRequest) {
-  XMLHttpRequest = window.XMLHttpRequest // jshint ignore: line
+  XMLHttpRequest = window.XMLHttpRequest; // jshint ignore: line
 // node
 } else {
-  XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest // jshint ignore: line
+  XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest; // jshint ignore: line
 }
 
-var XHR2 = require('xhr2') // jshint ignore: line
+var XHR2 = require('xhr2'); // jshint ignore: line
 
 /**
  * HttpProvider should be used to send rpc calls over http
@@ -4327,8 +4300,11 @@ HttpProvider.prototype.prepareRequest = function (async) {
     request = new XMLHttpRequest();
   }
 
-  request.open('POST', this.host, async, this.user, this.password);
-  request.setRequestHeader('Content-Type', 'application/json');
+  request.open('POST', this.host, async);
+  if (this.user && this.password) {
+    var auth = 'Basic ' + new Buffer(this.user + ':' + this.password).toString('base64');
+    request.setRequestHeader('Authorization', auth);
+  } request.setRequestHeader('Content-Type', 'application/json');
   return request;
 };
 
@@ -4409,9 +4385,9 @@ HttpProvider.prototype.isConnected = function () {
       method: 'net_listening',
       params: []
     });
-    return true
+    return true;
   } catch (e) {
-    return false
+    return false;
   }
 };
 
@@ -4944,21 +4920,21 @@ module.exports = Jsonrpc;
 
 },{}],36:[function(require,module,exports){
 /*
- This file is part of web3.js.
+    This file is part of web3.js.
 
- web3.js is free software: you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+    web3.js is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
- web3.js is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
+    web3.js is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
 
- You should have received a copy of the GNU Lesser General Public License
- along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
- */
+    You should have received a copy of the GNU Lesser General Public License
+    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+*/
 /**
  * @file method.js
  * @author Marek Kotewicz <marek@ethdev.com>
@@ -5007,7 +4983,7 @@ Method.prototype.extractCallback = function (args) {
 
 /**
  * Should be called to check if the number of arguments is correct
- *
+ * 
  * @method validateArgs
  * @param {Array} arguments
  * @throws {Error} if it is not
@@ -5020,19 +4996,12 @@ Method.prototype.validateArgs = function (args) {
 
 /**
  * Should be called to format input args of method
- *
+ * 
  * @method formatInput
  * @param {Array}
  * @return {Array}
  */
 Method.prototype.formatInput = function (args) {
-    //TODO
-    if (utils.isSha3(args[0])) {
-        if (args[0].substring(0, 2) === '0x') {
-            args[0] = args[0].substring(2, 66);
-        }
-        return args;
-    }
     if (!this.inputFormatter) {
         return args;
     }
@@ -5081,11 +5050,11 @@ Method.prototype.attachToObject = function (obj) {
         obj[name[0]] = obj[name[0]] || {};
         obj[name[0]][name[1]] = func;
     } else {
-        obj[name[0]] = func;
+        obj[name[0]] = func; 
     }
 };
 
-Method.prototype.buildCall = function () {
+Method.prototype.buildCall = function() {
     var method = this;
     var send = function () {
         var payload = method.toPayload(Array.prototype.slice.call(arguments));
@@ -5223,7 +5192,7 @@ var Iban = require('../iban');
 var transfer = require('../transfer');
 
 var blockCall = function (args) {
-    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "cita_getBlockByHash" : "cita_getBlockByHeight";
+    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "eth_getBlockByHash" : "eth_getBlockByNumber";
 };
 
 var transactionFromBlockCall = function (args) {
@@ -5300,7 +5269,7 @@ var methods = function () {
 
     var getCode = new Method({
         name: 'getCode',
-        call: 'cita_getCode',
+        call: 'eth_getCode',
         params: 2,
         inputFormatter: [formatters.inputAddressFormatter, formatters.inputDefaultBlockNumberFormatter]
     });
@@ -5346,7 +5315,7 @@ var methods = function () {
 
     var getTransaction = new Method({
         name: 'getTransaction',
-        call: 'cita_getTransactionByHash',
+        call: 'eth_getTransactionByHash',
         params: 1,
         outputFormatter: formatters.outputTransactionFormatter
     });
@@ -5361,14 +5330,14 @@ var methods = function () {
 
     var getTransactionReceipt = new Method({
         name: 'getTransactionReceipt',
-        call: 'cita_getTransactionReceipt',
+        call: 'eth_getTransactionReceipt',
         params: 1,
         outputFormatter: formatters.outputTransactionReceiptFormatter
     });
 
     var getTransactionCount = new Method({
         name: 'getTransactionCount',
-        call: 'cita_getTransactionCount',
+        call: 'eth_getTransactionCount',
         params: 2,
         inputFormatter: [null, formatters.inputDefaultBlockNumberFormatter],
         outputFormatter: utils.toDecimal
@@ -5383,7 +5352,7 @@ var methods = function () {
 
     var sendTransaction = new Method({
         name: 'sendTransaction',
-        call: 'cita_sendTransaction',
+        call: 'eth_sendTransaction',
         params: 1,
         inputFormatter: [formatters.inputTransactionFormatter]
     });
@@ -5404,7 +5373,7 @@ var methods = function () {
 
     var call = new Method({
         name: 'call',
-        call: 'cita_call',
+        call: 'eth_call',
         params: 2,
         inputFormatter: [formatters.inputCallFormatter, formatters.inputDefaultBlockNumberFormatter]
     });
@@ -5506,7 +5475,7 @@ var properties = function () {
         }),
         new Property({
             name: 'blockNumber',
-            getter: 'cita_blockHeight',
+            getter: 'eth_blockNumber',
             outputFormatter: utils.toDecimal
         }),
         new Property({
