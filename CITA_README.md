@@ -210,6 +210,35 @@ result:  {"jsonrpc":"2.0","id":15,"result":{"transactionHash":"0x7bf3c448de46895
 
 ```
 
+### 获取合约文件中的Event事件
+
+在`solidity`合约文件中，通常会在某些方法中添加`Event`事件，目的是通过日志的方式，获取合约执行过程中的关键节点，例如方法执行是否正常，转账是否成功等，在不调用新的合约方法的前提下，可以通过该`fliter`返回的日志数据判断合约的执行情况。相关的js代码如下：
+
+```js
+// 获取事件对象
+var myEvent = myContract.Transfer();
+// 监听事件，监听到事件后会执行回调函数，并且停止继续监听
+myEvent.watch(function(err, result) {
+    if (!err) {
+        console.log("Transfer event result: " + JSON.stringify(result));
+    } else {
+        console.log("Transfer event error: " + JSON.stringify(err));
+    }
+    myEvent.stopWatching();
+});
+```
+
+这段js代码背后是调用了两个方法，一个是创建`filter`的请求`eth_newFilter`，一个是持续监听`filter`变化的请求`eth_getFilterChanges`，如果合约执行正常，`eth_getFilterChanges`会返回`Event`事件中包含的数据。
+
+```js
+sendAsync:  [{"jsonrpc":"2.0","id":40,"method":"eth_getFilterChanges","params":["0x4"]},{"jsonrpc":"2.0","id":41,"method":"eth_getFilterChanges","params":["0x5"]}]
+received:  [ { jsonrpc: '2.0', id: 40, result: [] },
+  { jsonrpc: '2.0', id: 41, result: [ [Object] ] } ]
+  
+// solidity中对应的Transfer Event事件，返回相应的log数据
+Transfer event result: {"address":"0xbd51c4669a21df5afd1fb661d5aab67171fbec35","blockHash":"0x74fff0272d2aa3a9c541c0ccf3af5460c73540b731c9f34b75f70cb7412a5d9a","blockNumber":158,"transactionHash":"0x439bde17517b6970480ee5ecb96f1b0e8e477f09e30f736786b3286b829733fe","transactionIndex":0,"logIndex":0,"transactionLogIndex":"0x0","event":"Transfer","args":{"_from":"0x0dbd369a741319fa5107733e2c9db9929093e3c7","_to":"0x546226ed566d0abb215c9db075fc36476888b310","_value":"100"}}
+```
+
 ### 调用合约方法
 
 合约部署成功后，就可以调用合约方法，以验证合约部署和执行情况是否正常。调用合约方法本质上也是在发送交易，`web3.js`库会将合约文件中的所有方法映射成`js`方法，使用者完全可以像调用普通`js`方法，完成对合约方法的调用。

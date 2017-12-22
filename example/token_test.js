@@ -50,17 +50,17 @@ function deployContract() {
             myContract = contract;
             console.log('address: ' + myContract.address);
 
-            // // 获取事件对象
-            // var myEvent = myContract.Transfer();
-            // // 监听事件，监听到事件后会执行回调函数
-            // myEvent.watch(function(err, result) {
-            //     if (!err) {
-            //         console.log("watch event result: " + result);
-            //     } else {
-            //         console.log("watch event result: " + err);
-            //     }
-            //     myEvent.stopWatching();
-            // });
+            // 获取事件对象
+            var myEvent = myContract.Transfer();
+            // 监听事件，监听到事件后会执行回调函数，并且停止继续监听
+            myEvent.watch(function(err, result) {
+                if (!err) {
+                    console.log("Transfer event result: " + JSON.stringify(result));
+                } else {
+                    console.log("Transfer event error: " + JSON.stringify(err));
+                }
+                myEvent.stopWatching();
+            });
 
             callMethodContract();
         }
