@@ -61,20 +61,20 @@
     }
 
     function getBlockNumber() {
-        // web3.eth.getBlockNumber(function(err, res){
-        //     if (!err) {
-        //         console.log("block number: " + res);
-        //         // document.getElementById('result').innerText = res.toString(10);
-        //     }
-        // });
-
-        web3.net.getPeerCount(function (err, result) {
-            if (err) {
-                throw new error("get cita peer node count error: " + err);
-            } else {
-                console.log("cita peer node count:" + result);
+        web3.eth.getBlockNumber(function(err, res){
+            if (!err) {
+                console.log("block number: " + res);
+                // document.getElementById('result').innerText = res.toString(10);
             }
         });
+
+        // web3.net.getPeerCount(function (err, result) {
+        //     if (err) {
+        //         throw new error("get cita peer node count error: " + err);
+        //     } else {
+        //         console.log("cita peer node count:" + result);
+        //     }
+        // });
     }
 
 </script>
