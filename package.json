@@ -1,7 +1,7 @@
 {
   "name": "cita-web3",
   "namespace": "ethereum",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "CITA JavaScript API, middleware to talk to a CITA node over RPC",
   "main": "./index.js",
   "directories": {
