@@ -93,4 +93,3 @@ gulp.task('watch', function() {
 });
 
 gulp.task('default', ['version', 'lint', 'clean', 'light', 'standalone']);
-
