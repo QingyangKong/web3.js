@@ -6,7 +6,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:1337"));
 
 const input = fs.readFileSync('SimpleStorage.sol');
 const output = solc.compile(input.toString(), 1);
-console.log("compile output: " + JSON.stringify(output));
+// console.log("compile output: " + JSON.stringify(output));
 const contractData = output.contracts[':SimpleStorage'];   // 规则：冒号+contract名称，并非文件名
 const bytecode = contractData.bytecode;   
 const abi = JSON.parse(contractData.interface);
@@ -82,6 +82,13 @@ function callMethodContract() {
                         console.log("get method result: " + JSON.stringify(result));
                     }
                 });
+
+                web3.eth.getTransaction(result.hash, function(err, res) {
+                    if (res) {
+                        console.log("get transaction by hash: " + JSON.stringify(res))
+                    }
+                })
+
             }
         }
     });
@@ -118,7 +125,6 @@ async function citaTest() {
             console.log("current block height:" + result);
         }
     });
-
 
     //2. get cita peer node count
     web3.net.getPeerCount(function (err, result) {
