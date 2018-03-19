@@ -17,7 +17,7 @@ npm manifest:
   {
     "name": "cita-web3",
     "namespace": "ethereum",
-    "version": "0.5.3",
+    "version": "0.5.5",
     "description": "CITA JavaScript API, middleware to talk to a CITA node over RPC",
     "main": "./index.js",
     "directories": {
@@ -28,10 +28,10 @@ npm manifest:
       "crypto-js": "^3.1.4",
       "eccrypto": "1.0.3",
       "google-protobuf": "^3.5.0",
-      "secp256k1": "3.4.0",
       "elliptic": "6.4.0",
       "buffer": "5.0.8",
       "solc": "0.4.19",
+      "log4js": "2.5.3",
       "utf8": "^2.1.1",
       "xhr2": "*",
       "xmlhttprequest": "*"
@@ -116,4 +116,4 @@ Lockfile:
   No lockfile
 
 Trace: 
-  Error: EACCES: permission denied, mkdir '/home/watson/Documents/cita/web3.js/node_modules/gulp-util/node_modules/dateformat'
+  Error: EACCES: permission denied, mkdir '/home/watson/Documents/cita/web3.js/node_modules/globule/node_modules/lru-cache'

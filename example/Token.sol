@@ -5,8 +5,8 @@ contract Token {
 
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
 
-    function Token() {
-        balances[msg.sender] = 10000;
+    function Token(uint supplyAmount) {
+        balances[msg.sender] = supplyAmount;
     }
 
     function getBalance(address account) public returns (uint balance) {

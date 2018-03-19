@@ -6,14 +6,33 @@ contract CalculateStorage {
 
     using SafeMath for *;
 
-    uint storedData;
+    bool allowAdd = true;
 
-    function set(uint x) public {
-        var result = SafeMath.mul(x, 2);
-        storedData = result;
+    uint mulResult;
+    uint addResult;
+
+    function setMul(uint x, uint y) public {
+        require(x < 100 && y < 100);
+        var result = SafeMath.mul(x, y);
+        mulResult = result;
     }
 
-    function get() public constant returns (uint) {
-        return storedData;
+    function getMul() public constant returns (uint) {
+        return mulResult;
+    }
+
+    modifier allowedAdd() {
+        if (!allowAdd)
+            throw;
+        _;
+    }
+
+    function setAdd(uint x, uint y) public allowedAdd() {
+        var result = SafeMath.add(x, y);
+        addResult = result;
+    }
+
+    function getAdd() public constant returns (uint) {
+        return addResult;
     }
 }

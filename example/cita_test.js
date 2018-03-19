@@ -1,12 +1,18 @@
 const fs = require('fs');
 const solc = require('solc');
 const Web3 = require('../lib/web3');
+const config = require('./config')
 
-const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:1337"));
+var log4js = require('log4js');
+var logger = log4js.getLogger();
+
+logger.level = 'debug'
+
+const web3 = new Web3(new Web3.providers.HttpProvider(config.IP_ADDRESS));
 
 const input = fs.readFileSync('SimpleStorage.sol');
 const output = solc.compile(input.toString(), 1);
-// console.log("compile output: " + JSON.stringify(output));
+// logger.info("compile output: " + JSON.stringify(output));
 const contractData = output.contracts[':SimpleStorage'];   // 规则：冒号+contract名称，并非文件名
 const bytecode = contractData.bytecode;   
 const abi = JSON.parse(contractData.interface);
@@ -47,7 +53,7 @@ async function deployContract() {
             // callback fires twice, we only want the second call when the contract is deployed
         } else if(contract.address){
             myContract = contract;
-            console.log('address: ' + myContract.address);
+            logger.info('address: ' + myContract.address);
             callMethodContract();
         }
     })
@@ -65,7 +71,7 @@ function callMethodContract() {
         validUntilBlock: validUntilBlock,
         from: from
     });
-    console.log("set method result: " + JSON.stringify(result));
+    logger.info("set method result: " + JSON.stringify(result));
 
     // wait for receipt
     var count = 0;
@@ -79,13 +85,13 @@ function callMethodContract() {
                     if(receipt) {
                         filter.stopWatching(function() {});
                         const result = myContract.get.call();
-                        console.log("get method result: " + JSON.stringify(result));
+                        logger.info("get method result: " + JSON.stringify(result));
                     }
                 });
 
                 web3.eth.getTransaction(result.hash, function(err, res) {
                     if (res) {
-                        console.log("get transaction by hash: " + JSON.stringify(res))
+                        logger.info("get transaction by hash: " + JSON.stringify(res))
                     }
                 })
 
@@ -102,7 +108,7 @@ function getRandomInt() {
 
 async function citaTest() {
 
-    console.log("web3.isConnected: " + web3.isConnected());
+    logger.info("web3.isConnected: " + web3.isConnected());
 
     // * net_peerCount
     // * cita_blockNumber
@@ -115,14 +121,14 @@ async function citaTest() {
     // * eth_getTransactionReceipt
     // * eth_call
 
-    console.log("--------begin test base case of cita -------");
+    logger.info("--------begin test base case of cita -------");
 
     //1. get cita block height
     web3.eth.getBlockNumber(function (err, result) {
         if (err) {
-            console.log("get current block height error: " + err);
+            logger.error("get current block height error: " + err);
         } else {
-            console.log("current block height:" + result);
+            logger.info("current block height:" + result);
         }
     });
 
@@ -131,7 +137,7 @@ async function citaTest() {
         if (err) {
             throw new error("get cita peer node count error: " + err);
         } else {
-            console.log("cita peer node count:" + result);
+            logger.info("cita peer node count:" + result);
         }
     });
 
@@ -141,14 +147,14 @@ async function citaTest() {
         if (err) {
             throw new error("get block by height error: " + err);
         } else {
-            console.log("get hash by height: " + result.hash);
+            logger.info("get hash by height: " + result.hash);
 
             //4 cita_getBlockByHash
             web3.eth.getBlockByHash(result.hash, function (err, result) {
                 if(err) {
                     throw new error("get block by hash error: " + err);
                 } else {
-                    console.log("get block by hash : " + JSON.stringify(result));
+                    logger.info("get block by hash : " + JSON.stringify(result));
                 }
             });
 

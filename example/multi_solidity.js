@@ -1,22 +1,26 @@
 const fs = require('fs');
 const solc = require('solc');
 const Web3 = require('../lib/web3');
+const config = require('./config')
+var log4js = require('log4js');
+var logger = log4js.getLogger();
 
-const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:1337"));
+logger.level = 'debug'
+
+const web3 = new Web3(new Web3.providers.HttpProvider(config.IP_ADDRESS));
 
 var input = {};
-var files = ['CalculateStorage.sol', 'SafeMath.sol'];
-var i;
-for (i in files) {
-    var file = files[i];
-    input[file] = fs.readFileSync('contracts/' + file, 'utf8');
-}
+const path = 'contracts/'
+var files = fs.readdirSync(path);
+files.forEach(function (filename) {
+    input[filename] = fs.readFileSync(path + filename, 'utf8');
+});
 
 var output = solc.compile({sources: input}, 1);
-// console.log("compile output: " + JSON.stringify(output));
+// logger.info("compile output: " + JSON.stringify(output));
 const contractData = output.contracts['CalculateStorage.sol:CalculateStorage']; 
 var bytecode = contractData.bytecode;
-// console.log("compile bytecode: " + JSON.stringify(bytecode));
+// logger.info("compile bytecode: " + JSON.stringify(bytecode));
 
 const abi = JSON.parse(contractData.interface);
 const contract = web3.eth.contract(abi);
@@ -56,8 +60,9 @@ async function deployContract() {
             // callback fires twice, we only want the second call when the contract is deployed
         } else if(contract.address){
             myContract = contract;
-            console.log('address: ' + myContract.address);
-            callMethodContract();
+            logger.info('address: ' + myContract.address);
+            callMulMethodContract();
+            callAddMethodContract();
         }
     })
 }
@@ -66,15 +71,15 @@ async function deployContract() {
 /**
  * 智能合约单元测试
  */
-function callMethodContract() {
-    var result =  myContract.set(5, {
+function callMulMethodContract(value) {
+    var result =  myContract.setMul(4, 50, {
         privkey: privkey,
         nonce: getRandomInt(),
         quota: quota,
         validUntilBlock: validUntilBlock,
         from: from
     });
-    console.log("set method result: " + JSON.stringify(result));
+    logger.info("set multi method result: " + JSON.stringify(result));
 
     // wait for receipt
     var count = 0;
@@ -87,8 +92,42 @@ function callMethodContract() {
                 web3.eth.getTransactionReceipt(result.hash, function(e, receipt){
                     if(receipt) {
                         filter.stopWatching(function() {});
-                        const result = myContract.get.call();
-                        console.log("get method result: " + JSON.stringify(result));
+                        const result = myContract.getMul.call();
+                        logger.info("get multi method result: " + JSON.stringify(result));
+                    }
+                });
+            }
+        }
+    });
+}
+
+
+/**
+ * 测试合约加法方法
+ */
+function callAddMethodContract(value) {
+    var result =  myContract.setAdd(29, 50, {
+        privkey: privkey,
+        nonce: getRandomInt(),
+        quota: quota,
+        validUntilBlock: validUntilBlock,
+        from: from
+    });
+    logger.info("set method add result: " + JSON.stringify(result));
+
+    // wait for receipt
+    var count = 0;
+    var filter = web3.eth.filter('latest', function(err){
+        if (!err) {
+            count++;
+            if (count > 20) {
+                filter.stopWatching(function() {});
+            } else {
+                web3.eth.getTransactionReceipt(result.hash, function(e, receipt){
+                    if(receipt) {
+                        filter.stopWatching(function() {});
+                        const result = myContract.getAdd.call();
+                        logger.info("get method add result: " + JSON.stringify(result));
                     }
                 });
             }
