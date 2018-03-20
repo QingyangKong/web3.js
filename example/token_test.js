@@ -8,7 +8,7 @@ const config = require('./config')
 var log4js = require('log4js');
 var logger = log4js.getLogger();
 
-logger.level = 'debug'
+logger.level = 'info'
 
 const web3 = new Web3(new Web3.providers.HttpProvider(config.IP_ADDRESS));
 
@@ -43,6 +43,7 @@ async function startDeploy() {
 
 // 部署合约
 function deployContract() {
+    logger.info("deploy contract ...")
     Contract.new(100000, {
         privkey: privkey,
         nonce: getRandomInt(),
@@ -56,7 +57,7 @@ function deployContract() {
             // callback fires twice, we only want the second call when the contract is deployed
         } else if(contract.address){
             myContract = contract;
-            logger.info('address: ' + myContract.address);
+            logger.info('contract address: ' + myContract.address);
 
             storeAbiToBlockchain(myContract.address, abi.toString());
 
@@ -111,6 +112,8 @@ function storeAbiToBlockchain(address, abi) {
 function getAbi(address) {
     var result = web3.eth.getAbi(address, "latest");
     logger.info("get abi: " + JSON.stringify(result));
+    var abi = utils.toUtf8(result)
+    logger.info("abi Object is: " + abi)
 }
 
 function getTransactionReceipt(hash, callback) {
@@ -139,10 +142,10 @@ function getTransactionReceipt(hash, callback) {
  */
 async function callMethodContract(address) {
 
-    const balance = myContract.getBalance.call(from);
-    logger.info("get balance: " + balance); 
+    logger.info("before transfer the balance of from address is : " + myContract.getBalance.call(from)); 
+    logger.info("before transfer the balance of to address is : " + myContract.getBalance.call(to)); 
 
-    var result = myContract.transfer(to, '100', {
+    var result = myContract.transfer(to, '1000', {
         privkey: privkey,
         nonce: getRandomInt(),
         quota: quota,
@@ -150,7 +153,7 @@ async function callMethodContract(address) {
         from: from
     });
 
-    logger.info("transfer receipt: " + JSON.stringify(result))
+    logger.info("transfer success and the receipt: " + JSON.stringify(result))
 
     // wait for receipt
     var count = 0;
@@ -163,8 +166,8 @@ async function callMethodContract(address) {
                 web3.eth.getTransactionReceipt(result.hash, function(e, receipt){
                     if(receipt) {
                         filter.stopWatching(function() {});
-                        const balance2 = myContract.getBalance.call(to);
-                        logger.info("transfer balance: " + balance2); 
+                        logger.info("after transfer the balance of from address is : " + myContract.getBalance.call(from)); 
+                        logger.info("after transfer the balance of to address is : " + myContract.getBalance.call(to)); 
                     }
                 });
             }

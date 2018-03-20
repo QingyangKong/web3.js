@@ -281,3 +281,17 @@ var filter = web3.eth.filter('latest', function(err){		// 调用flter方法，�
 ```
 如果合约方法执行返回的结果符合预期，那么就说明合约部署和验证成功。
 
+### 调试日志
+
+`web3.js`引入了`log4js`模块，使用方式也很简单。
+
+```js
+var log4js = require('log4js');
+var logger = log4js.getLogger();
+logger.debug("print debug log");
+logger.info("print info log")
+
+logger.level = "debug"; 
+```
+
+`info`级别的日志比`debug`级别优先级高，当`level`为`debug`时，`debug`和`info`日志都会打印；当`level`为`info`时，只会打印`info`日志，不会打印`debug`日志。目前`web3.js`中使用的是`debug`日志，如果使用者想要了解`web3.js`执行过程中的日志情况，可以将`level`设为`debug`，否则设为`info`。
