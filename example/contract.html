@@ -7,7 +7,7 @@
 
     var Web3 = require('web3');
     var web3 = new Web3();
-    web3.setProvider(new web3.providers.HttpProvider("http://localhost:1337"));
+    web3.setProvider(new web3.providers.HttpProvider("http://192.168.2.10:1337"));
 
     var validUntilBlock = 0;
     const privkey = '352416e1c910e413768c51390dfd791b414212b7b4fe6b1a18f58007fa894214';
@@ -19,9 +19,9 @@
     function getBlockNumber() {
         
         web3.eth.getBlockNumber(function(err, res){
-            if (!err) {
+            if (!err) { 
                 console.log("block number: " + res);
-                // document.getElementById('result').innerText = res.toString(10);
+                document.getElementById('result').innerText = res.toString(10);
             } else {
                 console.log(err);
             }
@@ -49,6 +49,7 @@
                         console.log(err)
                     } else {
                         console.log("sendTransaction result: " + JSON.stringify(res))
+                        document.getElementById('result').innerText = JSON.stringify(res);
                     }
                 })
             }

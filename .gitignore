@@ -17,6 +17,7 @@ example/js
 node_modules
 bower_components
 npm-debug.log
+yarn-error.log
 /bower
 .npm/
 packages/

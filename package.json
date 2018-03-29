@@ -1,7 +1,7 @@
 {
   "name": "cita-web3",
   "namespace": "ethereum",
-  "version": "0.5.6",
+  "version": "0.5.5",
   "description": "CITA JavaScript API, middleware to talk to a CITA node over RPC",
   "main": "./index.js",
   "directories": {
@@ -17,6 +17,7 @@
     "log4js": "^2.5.3",
     "npm": "^5.7.1",
     "solc": "0.4.19",
+    "uglify-es": "^3.3.9",
     "utf8": "^2.1.1",
     "xhr2": "*",
     "xmlhttprequest": "*"
@@ -25,6 +26,8 @@
     "xmlhttprequest": "./lib/utils/browser-xhr.js"
   },
   "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
     "bower": ">=1.4.1",
     "browserify": "^15.1.0",
     "chai": "^3.0.0",
@@ -32,6 +35,7 @@
     "del": ">=2.0.2",
     "exorcist": "^0.4.0",
     "gulp": "^3.9.1",
+    "gulp-babel": "^7.0.1",
     "gulp-jshint": "^2.1.0",
     "gulp-rename": ">=1.2.0",
     "gulp-replace": "^0.5.3",

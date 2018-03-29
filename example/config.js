@@ -1,3 +1,3 @@
 module.exports = {
-    IP_ADDRESS: 'http://127.0.0.1:1337',
+    IP_ADDRESS: 'http://192.168.2.10:1337',
 };
