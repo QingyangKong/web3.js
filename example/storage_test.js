@@ -92,7 +92,7 @@ function callMethodContract() {
     logger.info("set method result: " + JSON.stringify(result));
 
     contractUtils.getTransactionReceipt(web3, result.hash, function(receipt) {
-        const result = myContract.get.call();
-        console.log("get method result: " + JSON.stringify(result));
+        const value = myContract.get.call();
+        console.log("get method result: " + JSON.stringify(value));
     })
 }

@@ -9,7 +9,9 @@ var del = require('del');
 var gulp = require('gulp');
 var browserify = require('browserify');
 var jshint = require('gulp-jshint');
-var uglify = require('gulp-uglify');
+var uglifyjs = require('uglify-es');
+// var uglify = require('gulp-uglify');
+var composer = require('gulp-uglify/composer');
 var rename = require('gulp-rename');
 var source = require('vinyl-source-stream');
 var exorcist = require('exorcist');
@@ -21,6 +23,8 @@ var DEST = path.join(__dirname, 'dist/');
 var src = 'index';
 var dst = 'web3';
 var lightDst = 'web3-light';
+
+var minify = composer(uglifyjs, console);
 
 var browserifyOptions = {
     debug: true,
@@ -68,7 +72,7 @@ gulp.task('light', ['clean'], function () {
         .pipe(exorcist(path.join( DEST, lightDst + '.js.map')))
         .pipe(source(lightDst + '.js'))
         .pipe(gulp.dest( DEST ))
-        .pipe(streamify(uglify()))
+        .pipe(streamify(minify({})))
         .pipe(rename(lightDst + '.min.js'))
         .pipe(gulp.dest( DEST ));
 });
@@ -83,7 +87,7 @@ gulp.task('standalone', ['clean'], function () {
         .pipe(exorcist(path.join( DEST, dst + '.js.map')))
         .pipe(source(dst + '.js'))
         .pipe(gulp.dest( DEST ))
-        .pipe(streamify(uglify()))
+        .pipe(streamify(minify({})))
         .pipe(rename(dst + '.min.js'))
         .pipe(gulp.dest( DEST ));
 });
@@ -93,4 +97,3 @@ gulp.task('watch', function() {
 });
 
 gulp.task('default', ['version', 'lint', 'clean', 'light', 'standalone']);
-

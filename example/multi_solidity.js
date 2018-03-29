@@ -72,8 +72,8 @@ function callAddMethodContract(value) {
     logger.info("set method add result: " + JSON.stringify(result));
 
     contractUtils.getTransactionReceipt(web3, result.hash, function(receipt) {
-        const result = myContract.getAdd.call();
-        logger.info("get method add result: " + JSON.stringify(result));
+        const value = myContract.getAdd.call();
+        logger.info("get method add result: " + JSON.stringify(value));
     })
 
 }

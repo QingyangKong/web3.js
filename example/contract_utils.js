@@ -18,6 +18,8 @@ var getTransactionReceipt = function(web3, hash, callback) {
                     }
                 })
             }
+        } else {
+            // no handle
         }
     });
 }
@@ -33,6 +35,8 @@ var initBlockNumber = function(web3, callback) {
                 version: 0
             };
             callback(commonParams);
+        } else {
+            console.error(err)
         }
     });
 }
