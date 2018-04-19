@@ -13,9 +13,15 @@ logger.level = 'debug'
 
 const web3 = new Web3(new Web3.providers.HttpProvider(config.IP_ADDRESS));
 
-const input = fs.readFileSync('SimpleStorage.sol');
-const output = solc.compile(input.toString(), 1);
-const contractData = output.contracts[':SimpleStorage'];   // 规则：冒号+contract名称，并非文件名
+var input = {};
+const path = 'storage/'
+var files = fs.readdirSync(path);
+files.forEach(function (filename) {
+    input[filename] = fs.readFileSync(path + filename, 'utf8');
+});
+
+var output = solc.compile({sources: input}, 1);
+const contractData = output.contracts['SimpleStorageMgnt.sol:SimpleStorageMgnt'];   // 规则：冒号+contract名称，并非文件名
 var bytecode = contractData.bytecode;   
 var abi = JSON.parse(contractData.interface);
 const contract = web3.eth.contract(abi);
@@ -41,7 +47,6 @@ async function deployContract() {
         } else if(contract.address){
             myContract = contract;
             console.info('address: ' + myContract.address);
-            storeAbiToBlockchain(myContract.address, contractData.interface.toString());
             
             callMethodContract();
         }
@@ -50,42 +55,10 @@ async function deployContract() {
 
 
 /**
- * 上传abi至区块链
- * @param {string} abi 
- */
-function storeAbiToBlockchain(address, abi) {
-
-    var hex = utils.fromUtf8(abi);
-    if (hex.slice(0, 2) == '0x') hex = hex.slice(2);
-
-    var code = (address.slice(0, 2) == '0x'? address.slice(2):address) + hex;
-    web3.eth.sendTransaction({
-        ...commonParams,
-        to: abiTo,
-        data: code
-    }, function(err, res) {
-        if(err) {
-            logger.error("send transaction error: " + err)
-        } else {
-            logger.info("send transaction result: " + JSON.stringify(res))
-            contractUtils.getTransactionReceipt(web3, res.hash, function(receipt) {
-                getAbi(address)
-            })
-        }
-    })
-}
-
-function getAbi(address) {
-    var result = web3.eth.getAbi(address, "latest");
-    var abi = utils.toUtf8(result);
-    logger.info("get abi: " + abi);
-}
-
-/**
  * 智能合约单元测试
  */
 function callMethodContract() {
-    var result =  myContract.set(5, {
+    var result =  myContract.set(200, {
         ...commonParams,
         from: from
     });

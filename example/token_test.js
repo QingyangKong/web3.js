@@ -43,7 +43,7 @@ function deployContract() {
             myContract = contract;
             logger.info('contract address: ' + myContract.address);
 
-            storeAbiToBlockchain(myContract.address, abi.toString());
+            storeAbiToBlockchain(myContract.address, contractData.interface.toString());
 
             listenEvent(myContract);
 

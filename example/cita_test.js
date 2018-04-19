@@ -38,6 +38,7 @@ async function citaTest() {
         }
     });
 
+
     //2. get cita peer node count
     web3.net.getPeerCount(function (err, result) {
         if (err) {
