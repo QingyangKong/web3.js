@@ -24,6 +24,7 @@ var output = solc.compile({sources: input}, 1);
 const contractData = output.contracts['SimpleStorageMgnt.sol:SimpleStorageMgnt'];   // 规则：冒号+contract名称，并非文件名
 var bytecode = contractData.bytecode;   
 var abi = JSON.parse(contractData.interface);
+logger.info("abi: " + JSON.stringify(abi))
 const contract = web3.eth.contract(abi);
 
 const from = '0dbd369a741319fa5107733e2c9db9929093e3c7';

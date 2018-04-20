@@ -4,7 +4,7 @@ import "./SimpleStorage.sol";
 
 contract SimpleStorageMgnt {
     address simpleStorageAdr;
-    SimpleStorage simple = SimpleStorage(0x8865fd90e85da78c3cb8ee6b7087388f31d20f79);
+    SimpleStorage simple = SimpleStorage(0x99080039b22ec28fc2819811a788012131ae382a);
 
     function getAddr() view public returns(address) {
         return simpleStorageAdr;
