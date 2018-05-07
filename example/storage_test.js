@@ -22,7 +22,7 @@ const contract = web3.eth.contract(abi);
 
 const from = '0dbd369a741319fa5107733e2c9db9929093e3c7';
 const to = '0x546226ed566d0abb215c9db075fc36476888b310';
-const abiTo = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+const abiTo = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 var commonParams = {};
 
 /*************************************初始化完成***************************************/ 
