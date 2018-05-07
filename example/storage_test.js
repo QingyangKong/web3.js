@@ -41,7 +41,8 @@ async function deployContract() {
         } else if(contract.address){
             myContract = contract;
             console.info('address: ' + myContract.address);
-            storeAbiToBlockchain(myContract.address, abi.toString());
+            console.info('abi.toString(): ' + JSON.stringify(abi));
+            storeAbiToBlockchain(myContract.address, JSON.stringify(abi));
             
             callMethodContract();
         }
@@ -78,7 +79,7 @@ function storeAbiToBlockchain(address, abi) {
 function getAbi(address) {
     var result = web3.eth.getAbi(address, "latest");
     var abi = utils.toUtf8(result);
-    logger.info("get abi: " + abi);
+    logger.info("get abi: " + JSON.stringify(abi));
 }
 
 /**

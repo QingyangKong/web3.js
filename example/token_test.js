@@ -43,7 +43,7 @@ function deployContract() {
             myContract = contract;
             logger.info('contract address: ' + myContract.address);
 
-            storeAbiToBlockchain(myContract.address, abi.toString());
+            storeAbiToBlockchain(myContract.address, JSON.stringify(abi));
 
             listenEvent(myContract);
 
@@ -96,9 +96,8 @@ function storeAbiToBlockchain(address, abi) {
 
 function getAbi(address) {
     var result = web3.eth.getAbi(address, "latest");
-    logger.info("get abi: " + JSON.stringify(result));
     var abi = utils.toUtf8(result)
-    logger.info("abi Object is: " + abi)
+    logger.info("get abi is: " + abi)
 }
 
 
