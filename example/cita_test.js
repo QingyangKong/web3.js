@@ -68,6 +68,14 @@ async function citaTest() {
         }
     });
 
+    web3.eth.getMetaData(0x10, function(err, result){
+        if (err) {
+            throw new error("get meta error: " + err);
+        } else {
+            logger.info("get meta by height: " + JSON.stringify(result));
+        }
+    });
+
 
     
 }
