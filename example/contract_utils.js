@@ -33,7 +33,7 @@ var initBlockNumber = function(web3, callback) {
                 quota: quota,
                 validUntilBlock: res + 88,
                 version: 0,
-                chainId: 1
+                chainId: 0
             };
             callback(commonParams);
         } else {
