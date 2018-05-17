@@ -1,7 +1,7 @@
 /* jshint ignore:start */
 Package.describe({
   name: 'cita:web3',
-  version: '0.5.8',
+  version: '0.5.9',
   summary: 'CITA JavaScript API, middleware to talk to a CITA node over RPC',
   git: 'https://github.com/ethereum/ethereum.js',
   // By default, Meteor will default to using README.md for documentation.
