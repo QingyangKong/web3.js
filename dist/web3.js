@@ -1371,7 +1371,8 @@ proto.Transaction.toObject = function(includeInstance, msg) {
     quota: jspb.Message.getFieldWithDefault(msg, 3, 0),
     validUntilBlock: jspb.Message.getFieldWithDefault(msg, 4, 0),
     data: msg.getData_asB64(),
-    version: jspb.Message.getFieldWithDefault(msg, 6, 0)
+    version: jspb.Message.getFieldWithDefault(msg, 6, 0),
+    chainId: jspb.Message.getFieldWithDefault(msg, 7, 0)
   };
 
   if (includeInstance) {
@@ -1431,6 +1432,10 @@ proto.Transaction.deserializeBinaryFromReader = function(msg, reader) {
     case 6:
       var value = /** @type {number} */ (reader.readUint32());
       msg.setVersion(value);
+      break;
+    case 7:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setChainId(value);
       break;
     default:
       reader.skipField();
@@ -1500,6 +1505,13 @@ proto.Transaction.serializeBinaryToWriter = function(message, writer) {
   if (f !== 0) {
     writer.writeUint32(
       6,
+      f
+    );
+  }
+  f = message.getChainId();
+  if (f !== 0) {
+    writer.writeUint32(
+      7,
       f
     );
   }
@@ -1617,6 +1629,21 @@ proto.Transaction.prototype.getVersion = function() {
 /** @param {number} value */
 proto.Transaction.prototype.setVersion = function(value) {
   jspb.Message.setProto3IntField(this, 6, value);
+};
+
+
+/**
+ * optional uint32 chain_id = 7;
+ * @return {number}
+ */
+proto.Transaction.prototype.getChainId = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 7, 0));
+};
+
+
+/** @param {number} value */
+proto.Transaction.prototype.setChainId = function(value) {
+  jspb.Message.setProto3IntField(this, 7, value);
 };
 
 
@@ -6592,9 +6619,6 @@ var Buffer = require('buffer/').Buffer;
 var EC = require('elliptic').ec;
 var ec = new EC('secp256k1');
 
-// var log4js = require('log4js');
-// var logger = log4js.getLogger();
-
 /**
  * Should the format output to a big number
  *
@@ -6688,7 +6712,6 @@ var inputTransactionFormatter = function (options){
  * @returns protobuf of signed transaction
 */
 var inputTransactionFormatterCita = function (options){
-    // logger.debug("transaction parameter options: " + JSON.stringify(options));
     // create Transaction
     var tx = new blockchain.Transaction();
     if (!options.nonce) {
@@ -6709,6 +6732,11 @@ var inputTransactionFormatterCita = function (options){
         throw new Error('vaild until block error');
     }
     tx.setValidUntilBlock(options.validUntilBlock);
+
+    if (options.chainId < 0) {
+        throw new Error('chain_id error');
+    }
+    tx.setChainId(options.chainId);
 
     if (options.data.slice(0, 2) == '0x') {
         options.data = options.data.slice(2);
@@ -7329,7 +7357,6 @@ HttpProvider.prototype.send = function (payload) {
 
   try {
     request.send(JSON.stringify(payload));
-    // logger.debug("send: ", JSON.stringify(payload))
   } catch (error) {
     throw errors.InvalidConnection(this.host);
   }
@@ -7376,7 +7403,6 @@ HttpProvider.prototype.sendAsync = function (payload, callback) {
 
   try {
     request.send(JSON.stringify(payload));
-    // logger.debug("sendAsync: ", JSON.stringify(payload))
   } catch (error) {
     callback(errors.InvalidConnection(this.host));
   }
@@ -8293,6 +8319,13 @@ var methods = function () {
         outputFormatter: formatters.outputBlockFormatter
     });
 
+    var getMetaData = new Method({
+        name: 'getMetaData',
+        call: 'cita_getMetaData',
+        params: 1,
+        inputFormatter: [formatters.inputBlockNumberFormatter],
+    });
+
     var getBlockByHash = new Method({
         name: 'getBlockByHash',
         call: 'cita_getBlockByHash',
@@ -8447,6 +8480,7 @@ var methods = function () {
         getStorageAt,
         getCode,
         getBlockByNumber,
+        getMetaData,
         getBlockByHash,
         getAbi,
         getUncle,
@@ -9380,7 +9414,6 @@ RequestManager.prototype.sendAsync = function (data, callback) {
 
     var payload = Jsonrpc.toPayload(data.method, data.params);
     this.provider.sendAsync(payload, function (err, result) {
-        // logger.debug("result: ", JSON.stringify(result));
         if (err) {
             return callback(err);
         }
@@ -9537,7 +9570,6 @@ RequestManager.prototype.poll = function () {
             throw errors.InvalidResponse(results);
         }
 
-        // logger.debug("received: ", results);
         results.map(function (result) {
             var id = pollsIdMap[result.id];
 
@@ -25559,30 +25591,32 @@ utils.intFromLE = intFromLE;
 
 },{"bn.js":52,"minimalistic-assert":123,"minimalistic-crypto-utils":124}],106:[function(require,module,exports){
 module.exports={
-  "_from": "git+https://github.com/indutny/elliptic.git",
+  "_from": "elliptic@git+https://github.com/indutny/elliptic.git#fc8f0ee115486c2ac90f1e40ba1fcc891ee964af",
   "_id": "elliptic@6.4.0",
   "_inBundle": false,
+  "_integrity": "sha1-isKG3pNd3KkPPAW6l3qL9PcyXmg=",
   "_location": "/elliptic",
   "_phantomChildren": {},
   "_requested": {
     "type": "git",
-    "raw": "elliptic@git+https://github.com/indutny/elliptic.git",
+    "raw": "elliptic@git+https://github.com/indutny/elliptic.git#fc8f0ee115486c2ac90f1e40ba1fcc891ee964af",
     "name": "elliptic",
     "escapedName": "elliptic",
-    "rawSpec": "git+https://github.com/indutny/elliptic.git",
-    "saveSpec": "git+https://github.com/indutny/elliptic.git",
+    "rawSpec": "git+https://github.com/indutny/elliptic.git#fc8f0ee115486c2ac90f1e40ba1fcc891ee964af",
+    "saveSpec": "git+https://github.com/indutny/elliptic.git#fc8f0ee115486c2ac90f1e40ba1fcc891ee964af",
     "fetchSpec": "https://github.com/indutny/elliptic.git",
-    "gitCommittish": null
+    "gitCommittish": "fc8f0ee115486c2ac90f1e40ba1fcc891ee964af"
   },
   "_requiredBy": [
     "/",
     "/browserify-sign",
     "/create-ecdh",
-    "/secp256k1"
+    "/eccrypto",
+    "/eccrypto/secp256k1"
   ],
   "_resolved": "git+https://github.com/indutny/elliptic.git#fc8f0ee115486c2ac90f1e40ba1fcc891ee964af",
-  "_spec": "elliptic@git+https://github.com/indutny/elliptic.git",
-  "_where": "/home/watson/Documents/cita/web3.js",
+  "_spec": "elliptic@git+https://github.com/indutny/elliptic.git#fc8f0ee115486c2ac90f1e40ba1fcc891ee964af",
+  "_where": "/Users/duanyy/Documents/cita/web3.js",
   "author": {
     "name": "Fedor Indutny",
     "email": "fedor@indutny.com"
