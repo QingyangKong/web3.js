@@ -7755,7 +7755,7 @@ HttpProvider.prototype.prepareRequest = function (async) {
 HttpProvider.prototype.send = function (payload) {
   if (payload.method === 'eth_sendTransaction' || payload.method === 'cita_sendTransaction' 
       || payload.method === 'eth_signTransaction') {
-    jsObject.showTransaction(payload.method, payload.params[0]);
+    appHybrid.showTransaction(payload.method, payload.params[0]);
     return;
   }
   var request = this.prepareRequest(false);
@@ -7787,7 +7787,7 @@ HttpProvider.prototype.send = function (payload) {
 HttpProvider.prototype.sendAsync = function (payload, callback) {
   if (payload.method === 'eth_sendTransaction' || payload.method === 'cita_sendTransaction' 
       || payload.method === 'eth_signTransaction') {
-    jsObject.showTransaction(payload.method, payload.params[0]);
+      appHybrid.showTransaction(payload.method, payload.params[0]);
     return;
   }
   var request = this.prepareRequest(true);
@@ -8592,9 +8592,9 @@ var methods = function () {
 
     var sendTransaction = new Method({
         name: 'sendTransaction',
-        call: 'cita_sendTransaction',
+        call: 'eth_sendTransaction',
         params: 1,
-        inputFormatter: [formatters.inputTransactionFormatterCita]
+        inputFormatter: [formatters.inputTransactionFormatter]
     });
 
     var signTransaction = new Method({
